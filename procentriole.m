@@ -26,6 +26,17 @@ eqn5 = diff(S6cw, t) == kcw*P4p*STIL*S6*(1-S6cw/0.5);
 [V] = odeToVectorField(eqn1, eqn2, eqn3, eqn4, eqn5)
 
 M = matlabFunction(V,'vars', {'t','Y'});
-sol = ode45(M,[0 800],[0 0, 0, 0, 0])
+sol = ode45(M,[0 1000],[0 0, 0, 0, 0]);
 
-fplot(@(x)deval(sol,x,1), [0, 800])
+P4total = @(x) deval(sol,x,1)+deval(sol,x,2);
+S6total = @(x) deval(sol,x,4)+deval(sol,x,5);
+
+%Plotting the graph
+fplot(P4total, [0, 1000])
+hold on
+fplot(S6total, [0, 1000])
+fplot(@(x) deval(sol,x,3), [0,1000])
+hold off
+legend({'P4total','S6total','STIL'},'FontSize',20)
+xlabel('Quantity (A.U.)', 'FontSize',20) 
+ylabel('Time (A.U)', 'FontSize',20) 
