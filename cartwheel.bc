@@ -1,0 +1,29 @@
+//parameters and rates for Plk4
+k1 = 0.003644;
+k2 = 0.03443;
+k3 = 0.06906;
+init_unboundAsl = 940;
+phosMax = 9;
+pMax = 9;
+
+//rates for cartwheel assembly
+k4 = 0.01;// controls how long until we level off
+k5 = 0.01;// controls degree of inflection if k5 > k4
+k6 = 0.3;//controls asymptotic centriole length (sensitive!)
+
+//Plk4 process definitions
+UNBOUND_ASL[i] = {bindPlk4, k1}.PLK4_BOUND_ASL[0];
+PLK4_BOUND_ASL[timesPhos] = [timesPhos < phosMax] -> ({phosphorylateAsl, k2}.PLK4_BOUND_ASL[timesPhos+1] 
+                                                    + {phosphorylateAna2, k2}.(PLK4_BOUND_ASL[timesPhos] || ACTIVE_ANA2[0]) ) 
+                          + [timesPhos >= phosMax] -> {unbindPlk4, k3};
+		
+
+//cartwheel assembly process definitions
+ACTIVE_ANA2[i] = {@buildCartwheel![0], k4} + {degrade, k6};
+CENTRIOLE[steps, length] = {@buildCartwheel?[0], 1}.( [steps < 9] -> CENTRIOLE[steps+1,length] + 
+                                                      [steps >= 9] -> CENTRIOLE[0,length+1] ) 
+                         + [steps > 0] -> {reverse, k5}.CENTRIOLE[steps-1,length];
+
+
+//system
+CENTRIOLE[0, 0] || init_unboundAsl*UNBOUND_ASL[0];
